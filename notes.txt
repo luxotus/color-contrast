@@ -18,6 +18,11 @@ Features
 	3) Auto adjust colors to meet contrast ratio requirements 
 		|- function adjustColor(dominateColor, recessiveColor, currentContrastRatio, targetContrastRatio)
 			|- Adjust non dominant color till targetContrastRatio is at requirement
+		|- function findRelationalTrait(element, element)
+			|- does
+				|- determine which elements color/size is dominate( larger ) and recessive( smaller ).
+			|- returns
+				|- { dominate: {id: "", tag: ""}, recessive: {id: "", tag: ""} }
 		|- function fixContrastManual(element1, element2)
 			|- does
 				|- Grab colors from both elements
