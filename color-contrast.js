@@ -46,6 +46,23 @@ const colorContrast = {
 	},
 
 	/**
+	* Turns rgba color to its equivalent rgb color based on the color its on top of.
+	*
+	* @param {{red: int, green: int, blue: int, alpha: float}} foregroundRGBA
+	* @param {{red: int, green: int, blue: int}} backgroundRGB
+	* @returns {{red: int, green: int, blue: int, rgb: string}} Equivalent RGB values for the foregroundRGBA
+	*/
+	convertRGBAToRGB: function(foregroundRGBA, backgroundRGB) {
+		let colorResult = {};
+		colorResult.red = Math.round(((1 - foregroundRGBA.alpha) * backgroundRGB.red) + (foregroundRGBA.alpha * foregroundRGBA.red));
+		colorResult.green = Math.round(((1 - foregroundRGBA.alpha) * backgroundRGB.green) + (foregroundRGBA.alpha * foregroundRGBA.green));
+		colorResult.blue = Math.round(((1 - foregroundRGBA.alpha) * backgroundRGB.blue) + (foregroundRGBA.alpha * foregroundRGBA.blue));
+		colorResult.rgb = "rgb("+colorResult.red+","+colorResult.green+","+colorResult.blue+")";
+
+		return colorResult;
+	},
+
+	/**
 	* Compare the contrast between two colors
 	*
 	* Formula from WCAG20 G18
@@ -66,15 +83,63 @@ const colorContrast = {
 	*
 	* @param {string} firstColor
 	* @param {string} secondColor
+	* @param {string} backgroundColor - only needed if the first or second color has a transparency of less then 1
 	* @returns {obj} contrast ratio, same structure as constrastMin
 	*/
-	compareColors: function( firstColor, secondColor ) {
-		let colorPatterns = {
-			rgbPattern: new RegExp(""),
-			rgbaPattern: new RegExp(""),
-			hexPattern: new RegExp(""),
+	compareColors: function( firstColor, secondColor, backgroundColor ) {
+		let color = {
+			pattern: new RegExp("rgb[a]?\\(([0-9]{1,3}), ([0-9]{1,3}), ([0-9]{1,3}),? ?(1|0\\.[0-9]{1,10})?\\)"),
+			firstColor: {},
+			secondColor: {},
 		};
 		let sRGB = {};
+		color.firstColor = firstColor.match(color.pattern);
+		color.secondColor = secondColor.match(color.pattern);
+		color.firstColor = {
+			red: parseInt(color.firstColor[1]),
+			green: parseInt(color.firstColor[2]),
+			blue: parseInt(color.firstColor[3]),
+			alpha: firstColor.includes("rgba") ? parseFloat(color.firstColor[4]) : 1,
+			rgb: color.firstColor[0],
+		};
+		color.secondColor = {
+			red: parseInt(color.secondColor[1]),
+			green: parseInt(color.secondColor[2]),
+			blue: parseInt(color.secondColor[3]),
+			alpha: secondColor.includes("rgba") ? parseFloat(color.secondColor[4]) : 1,
+			rgb: color.secondColor[0],
+		};
+
+		if (typeof backgroundColor == "undefined") {
+			color.backgroundColor = {
+				red: 255,
+				green: 255,
+				blue: 255,
+			}
+		} else {
+			// assumption that background color is just an rgb() and not rgba()
+			color.backgroundColor = backgroundColor.match(color.pattern);
+			color.backgroundColor = {
+				red: parseInt(color.backgroundColor[1]),
+				green: parseInt(color.backgroundColor[2]),
+				blue: parseInt(color.backgroundColor[3]),
+			};
+		}
+
+		if (color.firstColor.alpha < 1) {
+			color.firstColor = colorContrast.convertRGBAToRGB(color.firstColor, color.backgroundColor);
+		}
+
+		if (color.secondColor.alpha < 1) {
+			color.secondColor = colorContrast.convertRGBAToRGB(color.secondColor, color.backgroundColor);
+		}
+
+
+		// Formula logic below
+
+		console.log(color.firstColor);
+		console.log(color.secondColor);
+
 	},
 
 	/**
