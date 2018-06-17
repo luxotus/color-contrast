@@ -1,4 +1,4 @@
-var colorContrast = {
+const colorContrast = {
 
 	/**
 	* Contrast Requirements set by WCAG20
@@ -12,20 +12,54 @@ var colorContrast = {
 			normalText: 7,
 			largeText: 4.5
 		},
-		largeTextSizeMin: 14, // points
+		largeTextSizeMinBold: 18.5, // px
+		largeTextSizeMinNormal: 24, // px
 	},
 
 	/**
 	 * Converts font size to points
 	 * 
 	 * @param {string} size - Can be px, em, percent
+	 * @returns {float} size in pixels
 	 */
-	sizeToPoint: function( size ) {
+	sizeToPx: function( size ) {
+		let sizePattern = new RegExp("([0-9.?0-9?]*)([a-zA-Z]+|%)");
+		let sizeMatches = size.match(sizePattern);
+		let sizeNum = parseFloat(sizeMatches[1]);
+		let sizeUnit = sizeMatches[2];
+		let bodyElement = document.getElementsByTagName("body")[0];
+		let bodyfontSize = parseFloat(window.getComputedStyle(bodyElement, null).getPropertyValue("font-size").match(sizePattern)[1]);
 
+		if (sizeUnit == "px") {
+			return sizeNum;
+		} else if (sizeUnit == "em") {
+			return bodyfontSize * sizeNum;
+		} else if (sizeUnit == "%") {
+			return sizeNum/100 * bodyfontSize;
+		} else if (sizeUnit == "pt") {
+			return sizeNum/0.75;
+		}
+		
 	},
 
 	/**
 	* Compare the contrast between two colors
+	*
+	* Formula from WCAG20 G18
+	*    colors defined as...
+	*        R sRGB = R 8bit /255
+	*        G sRGB = G 8bit /255
+	*        B sRGB = B 8bit /255
+	*
+	*    L = 0.2126 * R + 0.7152 * G + 0.0722 * B
+	*        if R sRGB <= 0.03928 then R = R sRGB /12.92 else R = ((R sRGB +0.055)/1.055) ^ 2.4
+	*        if G sRGB <= 0.03928 then G = G sRGB /12.92 else G = ((G sRGB +0.055)/1.055) ^ 2.4
+	*        if B sRGB <= 0.03928 then B = B sRGB /12.92 else B = ((B sRGB +0.055)/1.055) ^ 2.4
+	*
+	*    contrast ratio...
+	*        (L1 + 0.05) / (L2 + 0.05)
+	*        L1 = lighter
+	*        L2 = darker
 	*
 	* @param {string} firstColor
 	* @param {string} secondColor
