@@ -19,27 +19,30 @@ const colorContrast = {
 	/**
 	 * Converts font size to points
 	 * 
-	 * @param {string} size - Can be px, em, percent
+	 * @param {string} fontSize - Can be px, em, percent
 	 * @returns {float} size in pixels
 	 */
-	sizeToPx: function( size ) {
-		let sizePattern = new RegExp("([0-9.?0-9?]*)([a-zA-Z]+|%)");
-		let sizeMatches = size.match(sizePattern);
-		let sizeNum = parseFloat(sizeMatches[1]);
-		let sizeUnit = sizeMatches[2];
-		let bodyElement = document.getElementsByTagName("body")[0];
-		let bodyfontSize = parseFloat(window.getComputedStyle(bodyElement, null).getPropertyValue("font-size").match(sizePattern)[1]);
+	sizeToPx: function( fontSize ) {
+		let size = {
+			pattern: new RegExp("([0-9.?0-9?]*)([a-zA-Z]+|%)")
+		};
+		let body = {
+			element: document.getElementsByTagName("body")[0]
+		};
+		size.matches = fontSize.match(size.pattern);
+		size.num = parseFloat(size.matches[1]);
+		size.unit = size.matches[2];
+		body.fontSize = parseFloat(window.getComputedStyle(body.element, null).getPropertyValue("font-size").match(size.pattern)[1]);
 
-		if (sizeUnit == "px") {
-			return sizeNum;
-		} else if (sizeUnit == "em") {
-			return bodyfontSize * sizeNum;
-		} else if (sizeUnit == "%") {
-			return sizeNum/100 * bodyfontSize;
-		} else if (sizeUnit == "pt") {
-			return sizeNum/0.75;
+		if (size.unit == "px") {
+			return size.num;
+		} else if (size.unit == "em") {
+			return body.fontSize * size.num;
+		} else if (size.unit == "%") {
+			return size.num/100 * body.fontSize;
+		} else if (size.unit == "pt") {
+			return size.num/0.75;
 		}
-		
 	},
 
 	/**
@@ -66,7 +69,12 @@ const colorContrast = {
 	* @returns {obj} contrast ratio, same structure as constrastMin
 	*/
 	compareColors: function( firstColor, secondColor ) {
-
+		let colorPatterns = {
+			rgbPattern: new RegExp(""),
+			rgbaPattern: new RegExp(""),
+			hexPattern: new RegExp(""),
+		};
+		let sRGB = {};
 	},
 
 	/**
