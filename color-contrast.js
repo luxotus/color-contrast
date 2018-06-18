@@ -71,7 +71,7 @@ const colorContrast = {
 	*        G sRGB = G 8bit /255
 	*        B sRGB = B 8bit /255
 	*
-	*    L = 0.2126 * R + 0.7152 * G + 0.0722 * B
+	*    L = 0.2126 * R + 0.7152 * G + 0.0722 * B where RGB is defined as 
 	*        if R sRGB <= 0.03928 then R = R sRGB /12.92 else R = ((R sRGB +0.055)/1.055) ^ 2.4
 	*        if G sRGB <= 0.03928 then G = G sRGB /12.92 else G = ((G sRGB +0.055)/1.055) ^ 2.4
 	*        if B sRGB <= 0.03928 then B = B sRGB /12.92 else B = ((B sRGB +0.055)/1.055) ^ 2.4
@@ -92,7 +92,6 @@ const colorContrast = {
 			firstColor: {},
 			secondColor: {},
 		};
-		let sRGB = {};
 		color.firstColor = firstColor.match(color.pattern);
 		color.secondColor = secondColor.match(color.pattern);
 		color.firstColor = {
@@ -134,12 +133,48 @@ const colorContrast = {
 			color.secondColor = colorContrast.convertRGBAToRGB(color.secondColor, color.backgroundColor);
 		}
 
+		color.firstColor.sRGB = {
+			red: color.firstColor.red/255,
+			green: color.firstColor.green/255,
+			blue: color.firstColor.blue/255,
+		};
+		color.secondColor.sRGB = {
+			red: color.secondColor.red/255,
+			green: color.secondColor.green/255,
+			blue: color.secondColor.blue/255,
+		};
 
-		// Formula logic below
+		let key;
+		color.firstColor.lRGB = {};
+		color.secondColor.lRGB = {};
 
-		console.log(color.firstColor);
-		console.log(color.secondColor);
+		for(key in color.firstColor.sRGB) {
+			if (color.firstColor.sRGB[key] <= 0.03928) {
+				color.firstColor.lRGB[key] = color.firstColor.sRGB[key]/12.92;
+			} else {
+				color.firstColor.lRGB[key] = Math.pow(((color.firstColor.sRGB[key] + 0.055)/1.055), 2.4);
+			}
+		}
 
+		for(key in color.secondColor.sRGB) {
+			if (color.secondColor.sRGB[key] <= 0.03928) {
+				color.secondColor.lRGB[key] = color.secondColor.sRGB[key]/12.92;
+			} else {
+				color.secondColor.lRGB[key] = Math.pow(((color.secondColor.sRGB[key] + 0.055)/1.055), 2.4);
+			}
+		}
+
+		// lum -> luminance
+		color.firstColor.lum = 0.2126 * color.firstColor.lRGB.red + 0.7152 * color.firstColor.lRGB.green + 0.0722 * color.firstColor.lRGB.blue;
+		color.secondColor.lum = 0.2126 * color.secondColor.lRGB.red + 0.7152 * color.secondColor.lRGB.green + 0.0722 * color.secondColor.lRGB.blue;
+
+		if (color.firstColor.lum <= color.secondColor.lum) {
+			color.contrastRatio = (color.firstColor.lum + 0.05) / (color.secondColor.lum + 0.05);
+		} else {
+			color.contrastRatio = (color.secondColor.lum + 0.05) / (color.firstColor.lum + 0.05);
+		}
+
+		return Math.round((1/color.contrastRatio) * 100)/100;
 	},
 
 	/**
