@@ -22,7 +22,7 @@ const colorContrast = {
 	 * @param {string} fontSize - Can be px, em, percent
 	 * @returns {float} size in pixels
 	 */
-	sizeToPx: function( fontSize ) {
+	sizeToPx ( fontSize ) {
 		let size = {
 			pattern: new RegExp("([0-9.?0-9?]*)([a-zA-Z]+|%)")
 		};
@@ -52,7 +52,7 @@ const colorContrast = {
 	* @param {{red: int, green: int, blue: int}} backgroundRGB
 	* @returns {{red: int, green: int, blue: int, rgb: string}} Equivalent RGB values for the foregroundRGBA
 	*/
-	convertRGBAToRGB: function(foregroundRGBA, backgroundRGB) {
+	convertRGBAToRGB (foregroundRGBA, backgroundRGB) {
 		let colorResult = {};
 		colorResult.red = Math.round(((1 - foregroundRGBA.alpha) * backgroundRGB.red) + (foregroundRGBA.alpha * foregroundRGBA.red));
 		colorResult.green = Math.round(((1 - foregroundRGBA.alpha) * backgroundRGB.green) + (foregroundRGBA.alpha * foregroundRGBA.green));
@@ -84,9 +84,9 @@ const colorContrast = {
 	* @param {string} firstColor
 	* @param {string} secondColor
 	* @param {string} backgroundColor - only needed if the first or second color has a transparency of less then 1
-	* @returns {obj} contrast ratio, same structure as constrastMin
+	* @returns {float} contrast ratio
 	*/
-	compareColors: function( firstColor, secondColor, backgroundColor ) {
+	compareColors ( firstColor, secondColor, backgroundColor ) {
 		let color = {
 			pattern: new RegExp("rgb[a]?\\(([0-9]{1,3}), ([0-9]{1,3}), ([0-9]{1,3}),? ?(1|0\\.[0-9]{1,10})?\\)"),
 			firstColor: {},
@@ -178,51 +178,16 @@ const colorContrast = {
 	},
 
 	/**
-	* Compare the contrast between to elements
+	* Determine if the text passes or fails WCAG20 G18
 	*
-	* @param {obj} firstElement
-	* @param {obj} secondElement
+	* @param {string} fontSize
+	* @param {string} fontWeight
+	* @param {string} fontColor
+	* @param {string} backgroundColor
+	* @param {string} parentBackgroundColor
+	* @returns {{levelAA: {isPassing: boolean, contrastRatio: string, contrastMin: string, recomendations: string}, levelAAA: {same as levelAA just different values}}}
 	*/
-	compareElements: function( firstElement, secondElement ) {
-
-	},
-
-	/**
-	* Crawls through dom to find color contrast violations and tags them
-	*
-	* @returns {obj} list of all contrast violators
-	*/
-	colorContrastSearch: function() {
-
-	},
-
-	/**
-	* Adjust color/s to meet contrastMin requirements
-	*
-	* @param {string} foregroundColor - Usually text or smaller element, since this is what focuses the eye 
-	* @param {string} backgroundColor - parent element or larger element
-	* @parm {string} adjustmentPref - used to determine which color should be adjusted, values: "foreground", "background", "both"
-	* @return {obj} new color/s after adjustments
-	*/
-	adjustColor: function( foregroundColor, backgroundColor, adjustmentPref) {
-
-	},
-
-	/**
-	* Accepts elements that need colors adjusted
-	*
-	* @param {obj} firstElement
-	* @param {obj} secondElement
-	* @parm {string} adjustmentPref - used to determine which color should be adjusted, values: "first", "second", "both"
-	*/
-	fixContrastManual: function( firstElement, secondElement, adjustmentPref ) {
-
-	},
-
-	/**
-	* Crawls through dom and automatically fixes color contrast by adjusting colors
-	*/
-	fixContrastAuto: function() {
-
-	},
+	compareElements ( fontSize, fontWeight, fontColor, backgroundColor, parentBackgroundColor ) {
+		
+	}
 };
