@@ -1,22 +1,6 @@
 const colorContrast = {
 
 	/**
-	* Contrast Requirements set by WCAG20
-	*/
-	contrastMin: {
-		levelAA: {
-			normalText: 4.5,
-			largeText: 3
-		},
-		levelAAA: {
-			normalText: 7,
-			largeText: 4.5
-		},
-		largeTextSizeMinBold: 18.5, // px
-		largeTextSizeMinNormal: 24, // px
-	},
-
-	/**
 	 * Converts font size to points
 	 * 
 	 * @param {string} fontSize - Can be px, em, percent
@@ -43,6 +27,42 @@ const colorContrast = {
 		} else if (size.unit == "pt") {
 			return size.num/0.75;
 		}
+	},
+
+	/**
+	 * Convert font weight to a numeric value
+	*/
+	weightToNum ( fontWeight, parentWeight = 0 ) {
+		let weight = {
+			child: parseInt(fontWeight),
+			parent: parseInt(parentWeight),
+		};
+
+		if (isNaN(weight.child)) {
+			let weightStr = fontWeight.toLowerCase();
+
+			if (weightStr == "normal") {
+				weight.child = 400;
+			} else if (weightStr == "bold") {
+				weight.child = 700;
+			} else if (weightStr == "lighter") {
+				if (isNaN(weight.parent)) {
+					weight.child = 0;
+				} else {
+					weight.child = weight.parent - 100;
+				}
+			} else if (weightStr == "bolder") {
+				if (isNaN(weight.parent)) {
+					weight.child = 0;
+				} else {
+					weight.child = weight.parent + 100;
+				}
+			} else {
+				weight.child = 0;
+			}
+		}
+
+		return weight.child;
 	},
 
 	/**
@@ -92,6 +112,7 @@ const colorContrast = {
 			firstColor: {},
 			secondColor: {},
 		};
+		backgroundColor = backgroundColor || null;
 		color.firstColor = firstColor.match(color.pattern);
 		color.secondColor = secondColor.match(color.pattern);
 		color.firstColor = {
@@ -109,7 +130,7 @@ const colorContrast = {
 			rgb: color.secondColor[0],
 		};
 
-		if (typeof backgroundColor == "undefined") {
+		if (backgroundColor === null) {
 			color.backgroundColor = {
 				red: 255,
 				green: 255,
@@ -184,10 +205,39 @@ const colorContrast = {
 	* @param {string} fontWeight
 	* @param {string} fontColor
 	* @param {string} backgroundColor
-	* @param {string} parentBackgroundColor
+	* @param {string} parentBackgroundColor - optional, used when backgroundColor has semi transparent
 	* @returns {{levelAA: {isPassing: boolean, contrastRatio: string, contrastMin: string, recomendations: string}, levelAAA: {same as levelAA just different values}}}
 	*/
-	compareElements ( fontSize, fontWeight, fontColor, backgroundColor, parentBackgroundColor ) {
+	compareElements ( fontSize, fontWeight, fontColor, backgroundColor, parentBackgroundColor, parentFontWeight ) {
 		
+		// Contrast Requirements set by WCAG20
+		let contrastMin = {
+			levelAA: {
+				normalText: 4.5,
+				largeText: 3,
+			},
+			levelAAA: {
+				normalText: 7,
+				largeText: 4.5,
+			},
+			largeTextSizeMinBold: 18.5, // px
+			largeTextSizeMinNormal: 24, // px
+		};
+		parentBackgroundColor = parentBackgroundColor || null;
+		parentFontWeight = parentFontWeight || null;
+
+		// seperate font size from its unit of measure
+		let font = {
+			size: colorContrast.sizeToPx(fontSize),
+			weight: colorContrast.weightToNum(fontWeight),
+			contrastRatio: colorContrast.compareColors(fontColor, backgroundColor, parentBackgroundColor),
+		};
+
+		console.table(font);
+
+		// Determine whether or not the text passes WCAG20 G18
+
+		// Format Output
+
 	}
 };
