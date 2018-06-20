@@ -72,7 +72,7 @@ const colorContrast = {
 	* @param {{red: int, green: int, blue: int}} backgroundRGB
 	* @returns {{red: int, green: int, blue: int, rgb: string}} Equivalent RGB values for the foregroundRGBA
 	*/
-	convertRGBAToRGB (foregroundRGBA, backgroundRGB) {
+	convertRGBAToRGB ( foregroundRGBA, backgroundRGB ) {
 		let colorResult = {};
 		colorResult.red = Math.round(((1 - foregroundRGBA.alpha) * backgroundRGB.red) + (foregroundRGBA.alpha * foregroundRGBA.red));
 		colorResult.green = Math.round(((1 - foregroundRGBA.alpha) * backgroundRGB.green) + (foregroundRGBA.alpha * foregroundRGBA.green));
@@ -206,7 +206,7 @@ const colorContrast = {
 	* @param {string} fontColor
 	* @param {string} backgroundColor
 	* @param {string} parentBackgroundColor - optional, used when backgroundColor has semi transparent
-	* @returns {{levelAA: {isPassing: boolean, contrastRatio: string, contrastMin: string, recomendations: string}, levelAAA: {same as levelAA just different values}}}
+	* @returns {{levelAA: boolean, levelAAA: boolean, contrastRatio: float, recomendations: string}}
 	*/
 	compareElements ( fontSize, fontWeight, fontColor, backgroundColor, parentBackgroundColor, parentFontWeight ) {
 		
@@ -223,6 +223,12 @@ const colorContrast = {
 			largeTextSizeMinBold: 18.5, // px
 			largeTextSizeMinNormal: 24, // px
 		};
+		let comparedContrast = {
+			levelAA: false,
+			levelAAA: false,
+			contrastRatio: 0,
+			recomendations: "",
+		};
 		parentBackgroundColor = parentBackgroundColor || null;
 		parentFontWeight = parentFontWeight || null;
 
@@ -232,12 +238,24 @@ const colorContrast = {
 			weight: colorContrast.weightToNum(fontWeight),
 			contrastRatio: colorContrast.compareColors(fontColor, backgroundColor, parentBackgroundColor),
 		};
+		let isBold = font.weight >= 700 ? true : false;
 
-		console.table(font);
+		comparedContrast.levelAA = (font.contrastRatio >= contrastMin.levelAA.normalText && !isBold || font.contrastRatio >= contrastMin.levelAA.largeText && isBold);
+		comparedContrast.levelAAA = (font.contrastRatio >= contrastMin.levelAAA.normalText && !isBold || font.contrastRatio >= contrastMin.levelAAA.largeText && isBold);
 
 		// Determine whether or not the text passes WCAG20 G18
+		if (!comparedContrast.levelAA) {
+			comparedContrast.levelAA = false;
+			comparedContrast.recomendations = "Contrast to low, you should increase/decrease font color or background color.";
+		}
 
-		// Format Output
+		if (!comparedContrast.levelAAA) {
+			comparedContrast.levelAAA = false;
+			comparedContrast.recomendations = "Contrast to low, you should increase/decrease font color or background color."
+		}
 
+		comparedContrast.contrastRatio = font.contrastRatio;
+
+		return comparedContrast;
 	}
 };
