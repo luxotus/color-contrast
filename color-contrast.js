@@ -1,6 +1,50 @@
 const colorContrast = {
 
 	/**
+	 * Turns hex into a float
+	 * 
+	 * @param {hexadecimal}
+	*/
+	alphaHex ( hex ) {
+		return parseFloat(parseInt((parseInt(hex)/255)*1000)/1000);
+	},
+
+	/**
+	 * Convert hex into a rgb/rgba color value
+	 * 
+	 * @param {string} hex - this can be in 3 different forms. Ex #000 or #123456 or #123456FF
+	*/
+	hexToRgbA ( hex ) {
+		let color = {};
+	
+		if (/^#([A-Fa-f0-9]{3}){1,2}$/.test(hex)) { // 3 or 6 digit hex color
+			color.rawHex = hex.substring(1).split('');
+	
+			if (color.rawHex.length == 3) {
+				color.rawHex = [color.rawHex[0], color.rawHex[0], color.rawHex[1], color.rawHex[1], color.rawHex[2], color.rawHex[2]];
+			}
+	
+			color.rawHex = '0x'+color.rawHex.join(''); // turning to hex
+			color.red = (color.rawHex>>16)&255;
+			color.green = (color.rawHex>>8)&255;
+			color.blue = color.rawHex&255;
+			color.message = 'rgb(' + [color.red, color.green, color.blue].join(', ') + ')';
+		} else if (/^#([A-Fa-f0-9]{4}){1,2}$/.test(hex)) { // 8 digit hex color
+			color.rawHex = hex.substring(1).split('');
+			color.rawHex = '0x'+color.rawHex.join('');
+			color.red = (color.rawHex>>24)&255;
+			color.green = (color.rawHex>>16)&255;
+			color.blue = (color.rawHex>>8)&255;
+			color.alpha = colorContrast.alphaHex(color.rawHex&255);
+			color.message = 'rgba(' + [color.red, color.green, color.blue].join(', ') + ', ' + color.alpha +')';
+		} else {
+			color.message = 'Not a valid hex color code.';
+		}
+
+		return color.message;
+	},
+
+	/**
 	 * Converts font size to points
 	 * 
 	 * @param {string} fontSize - Can be px, em, percent
@@ -108,13 +152,31 @@ const colorContrast = {
 	*/
 	compareColors ( firstColor, secondColor, backgroundColor ) {
 		let color = {
-			pattern: new RegExp("rgb[a]?\\(([0-9]{1,3}), ([0-9]{1,3}), ([0-9]{1,3}),? ?(1|0\\.[0-9]{1,10})?\\)"),
+			rgbPattern: new RegExp('rgb[a]?\\(([0-9]{1,3}), ([0-9]{1,3}), ([0-9]{1,3}),? ?(1|0\\.[0-9]{1,10})?\\)'),
+			hexPattern: new RegExp('^#[0-9A-Za-z]{8}$|^#[0-9A-Za-z]{6}$|^#[0-9A-Za-z]{3}$'),
 			firstColor: {},
 			secondColor: {},
 		};
 		backgroundColor = backgroundColor || null;
-		color.firstColor = firstColor.match(color.pattern);
-		color.secondColor = secondColor.match(color.pattern);
+
+		// turning colors into rgb/a
+		if (firstColor.match(color.hexPattern) != null) {
+			firstColor = colorContrast.hexToRgbA(firstColor);
+		}
+
+		console.log(firstColor);
+		
+		if (secondColor.match(color.hexPattern) != null) {
+			secondColor = colorContrast.hexToRgbA(secondColor);	
+		}
+
+		if (backgroundColor != null && backgroundColor.match(color.hexPattern) != null) {
+			backgroundColor = colorContrast.hexToRgbA(backgroundColor);
+		}
+
+		color.firstColor = firstColor.match(color.rgbPattern);
+		color.secondColor = secondColor.match(color.rgbPattern);
+		
 		color.firstColor = {
 			red: parseInt(color.firstColor[1]),
 			green: parseInt(color.firstColor[2]),
@@ -138,7 +200,7 @@ const colorContrast = {
 			}
 		} else {
 			// assumption that background color is just an rgb() and not rgba()
-			color.backgroundColor = backgroundColor.match(color.pattern);
+			color.backgroundColor = backgroundColor.match(color.rgbPattern);
 			color.backgroundColor = {
 				red: parseInt(color.backgroundColor[1]),
 				green: parseInt(color.backgroundColor[2]),
