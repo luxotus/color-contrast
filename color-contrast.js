@@ -4,6 +4,7 @@ const colorContrast = {
 	 * Turns hex into a float
 	 * 
 	 * @param {hexadecimal}
+	 * @returns {float} alpha between 0-1
 	*/
 	alphaHex ( hex ) {
 		return parseFloat(parseInt((parseInt(hex)/255)*1000)/1000);
@@ -13,6 +14,7 @@ const colorContrast = {
 	 * Convert hex into a rgb/rgba color value
 	 * 
 	 * @param {string} hex - this can be in 3 different forms. Ex #000 or #123456 or #123456FF
+	 * @returns {string} rgb(#,#,#) / rgba(#,#,#,#)
 	*/
 	hexToRgbA ( hex ) {
 		let color = {};
@@ -44,6 +46,12 @@ const colorContrast = {
 		return color.message;
 	},
 
+	/**
+	 * Grabs rgb values from color names
+	 * 
+	 * @param {string} colorName - html defined color names
+	 * @returns {string} rgb(#,#,#) / rgba(#,#,#,#)
+	*/
 	colorNamesToRGB ( colorName ) {
 		let color = {
 			AliceBlue: "rgb(240, 248, 255)", 
@@ -234,8 +242,12 @@ const colorContrast = {
 
 	/**
 	 * Convert font weight to a numeric value
+	 * 
+	 * @param {string} fontWeight
+	 * @param {int} parentWeight - only needed if fontWeight was defined as lighter or bolder 
+	 * @returns {int} font wieght
 	*/
-	weightToNum ( fontWeight, parentWeight = 0 ) {
+	weightToNum ( fontWeight, parentWeight = 400 ) {
 		let weight = {
 			child: parseInt(fontWeight),
 			parent: parseInt(parentWeight),
@@ -324,8 +336,6 @@ const colorContrast = {
 		} else if (colorContrast.colorNamesToRGB(firstColor)) {
 			firstColor = colorContrast.colorNamesToRGB(firstColor);
 		}
-
-		console.log(firstColor);
 		
 		if (secondColor.match(color.hexPattern) != null) {
 			secondColor = colorContrast.hexToRgbA(secondColor);	
@@ -344,6 +354,7 @@ const colorContrast = {
 		color.firstColor = firstColor.match(color.rgbPattern);
 		color.secondColor = secondColor.match(color.rgbPattern);
 		
+		// Turning RGB into an object
 		color.firstColor = {
 			red: parseInt(color.firstColor[1]),
 			green: parseInt(color.firstColor[2]),
