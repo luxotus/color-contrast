@@ -14,7 +14,7 @@ const colorContrast = {
 	 * Convert hex into a rgb/rgba color value
 	 * 
 	 * @param {string} hex - this can be in 3 different forms. Ex #000 or #123456 or #123456FF
-	 * @returns {string} rgb(#,#,#) / rgba(#,#,#,#)
+	 * @returns {string} rgb(#, #, #) / rgba(#, #, #, #)
 	*/
 	hexToRgbA ( hex ) {
 		let color = {};
@@ -50,7 +50,7 @@ const colorContrast = {
 	 * Grabs rgb values from color names
 	 * 
 	 * @param {string} colorName - html defined color names
-	 * @returns {string} rgb(#,#,#) / rgba(#,#,#,#)
+	 * @returns {string} rgb(#,#,#)
 	*/
 	colorNamesToRGB ( colorName ) {
 		let color = {
@@ -212,22 +212,29 @@ const colorContrast = {
 	},
 
 	/**
-	 * Converts font size to points
+	 * Converts font size to pixels
 	 * 
 	 * @param {string} fontSize - Can be px, em, percent
 	 * @returns {float} size in pixels
 	 */
-	sizeToPx ( fontSize ) {
+	sizeToPx ( fontSize, parentSize ) {
 		let size = {
 			pattern: new RegExp("([0-9.?0-9?]*)([a-zA-Z]+|%)")
 		};
-		let body = {
-			element: document.getElementsByTagName("body")[0]
-		};
+		let body = {};
 		size.matches = fontSize.match(size.pattern);
 		size.num = parseFloat(size.matches[1]);
 		size.unit = size.matches[2];
-		body.fontSize = parseFloat(window.getComputedStyle(body.element, null).getPropertyValue("font-size").match(size.pattern)[1]);
+
+		if (typeof parentSize == 'undefined') {
+			body.element = document.getElementsByTagName("body")[0];
+			body.fontSize = parseFloat(window.getComputedStyle(body.element, null).getPropertyValue("font-size").match(size.pattern)[1]);
+		} else if (parentSize.includes('px')) {
+			body.matches = parentSize.match(size.pattern);
+			body.fontSize = parseFloat(body.matches[1]);
+		} else {
+			return 'Parent size is optional. If you use it make sure fontSize is in px';
+		}
 
 		if (size.unit == "px") {
 			return size.num;
@@ -323,7 +330,7 @@ const colorContrast = {
 	*/
 	compareColors ( firstColor, secondColor, backgroundColor ) {
 		let color = {
-			rgbPattern: new RegExp('rgb[a]?\\(([0-9]{1,3}), ([0-9]{1,3}), ([0-9]{1,3}),? ?(1|0\\.[0-9]{1,10})?\\)'),
+			rgbPattern: new RegExp('rgb[a]?\\(([0-9]{1,3}), ([0-9]{1,3}), ([0-9]{1,3}),? ?(1|0\\.[0-9]{1,})?\\)'),
 			hexPattern: new RegExp('^#[0-9A-Za-z]{8}$|^#[0-9A-Za-z]{6}$|^#[0-9A-Za-z]{3}$'),
 			firstColor: {},
 			secondColor: {},
@@ -446,9 +453,11 @@ const colorContrast = {
 	* @param {string} fontColor
 	* @param {string} backgroundColor
 	* @param {string} parentBackgroundColor - optional, used when backgroundColor has semi transparent
+	* @param {string} parentFontWeight - optional, used when fontWeight is lighter or bolder
+	* @param {string} parentFontSize - optional, used when fontSize is relative
 	* @returns {{levelAA: boolean, levelAAA: boolean, contrastRatio: float, recomendations: string}}
 	*/
-	compareElements ( fontSize, fontWeight, fontColor, backgroundColor, parentBackgroundColor, parentFontWeight ) {
+	compareElements ( fontSize, fontWeight, fontColor, backgroundColor, parentBackgroundColor, parentFontWeight, parentFontSize ) {
 		
 		// Contrast Requirements set by WCAG20
 		let contrastMin = {
@@ -475,7 +484,7 @@ const colorContrast = {
 		// seperate font size from its unit of measure
 		let font = {
 			size: colorContrast.sizeToPx(fontSize),
-			weight: colorContrast.weightToNum(fontWeight),
+			weight: colorContrast.weightToNum(fontWeight, parentFontWeight),
 			contrastRatio: colorContrast.compareColors(fontColor, backgroundColor, parentBackgroundColor),
 		};
 		let isBold = font.weight >= 700 ? true : false;
